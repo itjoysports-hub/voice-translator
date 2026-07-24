@@ -1,5 +1,5 @@
 // 🔑 Gemini API Key ฟรีจาก Google AI Studio
-const GEMINI_API_KEY = "AQ.Ab8RN6K1HkVeJBVcOV-ywkMW7jqWmSy0q0kC897kCDDeLA_OGA";
+const GEMINI_API_KEY = "";
 
 // ตรวจสอบระบบจดจำเสียงพูดในเบราว์เซอร์
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
