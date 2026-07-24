@@ -1,7 +1,7 @@
 // =========================================================================
 // 🔑 1. วาง API Key ของคุณที่ได้จาก Google AI Studio (aistudio.google.com) ที่นี่
 // =========================================================================
-const GEMINI_API_KEY = "AQ.Ab8RN6JgD1y4_MOMKuyvUAdkci96etZ2xkqu4eh1tGt_yQ7lFQ";
+const GEMINI_API_KEY = "AQ.Ab8RN6LlY_HAUiarvhkhaZBtFNZbKIKp7X1mHxptVvoj5RSuTg";
 
 
 // ตรวจสอบระบบจดจำเสียงพูดในเบราว์เซอร์
@@ -113,7 +113,7 @@ recognition.onerror = (event) => {
 // 🤖 ฟังก์ชันแปลภาษาผ่าน Gemini API (ฟรี 100%)
 // ==========================================
 async function translateWithGemini(text, sourceLang, targetLang) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6JgD1y4_MOMKuyvUAdkci96etZ2xkqu4eh1tGt_yQ7lFQ") {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6LlY_HAUiarvhkhaZBtFNZbKIKp7X1mHxptVvoj5RSuTg") {
     alert("กรุณาใส่ GEMINI_API_KEY ในบรรทัดแรกของไฟล์ app.js ก่อนใช้งานครับ");
     return "ยังไม่ได้ใส่ API Key";
   }
