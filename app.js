@@ -1,4 +1,5 @@
-// 🔑 Gemini API Key ฟรีจาก Google AI Studio
+
+// 🔑 ใส่ Gemini API Key ของคุณที่นี่ (คีย์ที่ได้จาก aistudio.google.com ขึ้นต้นด้วย AIzaSy...)
 const GEMINI_API_KEY = "AQ.Ab8RN6KJy_uix56QsgIOoNravS5XZ6agSP0MyOARex_I93EQLA";
 
 // ตรวจสอบระบบจดจำเสียงพูดในเบราว์เซอร์
@@ -70,7 +71,7 @@ recognition.onresult = async (event) => {
     document.getElementById("originalB").innerText = speechResult;
   }
 
-  // แปลภาษาด้วย Gemini AI
+  // แปลภาษาผ่าน Gemini AI
   const translatedText = await translateWithGemini(speechResult, sourceLangName, targetLangName);
 
   if (currentSpeaker === 'A') {
@@ -107,16 +108,16 @@ recognition.onerror = (event) => {
 };
 
 // ==========================================
-// 🤖 ฟังก์ชันแปลภาษาด้วย Gemini API
+// 🤖 ฟังก์ชันแปลภาษาผ่าน Gemini API (ฟรี)
 // ==========================================
 async function translateWithGemini(text, sourceLang, targetLang) {
-  if (!GEMINI_API_KEY) {
-    return "ไม่พบ API Key";
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6KJy_uix56QsgIOoNravS5XZ6agSP0MyOARex_I93EQLA") {
+    return "กรุณาใส่ GEMINI_API_KEY ก่อนใช้งาน";
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-  const promptText = `You are a professional voice translator. Translate the following spoken message from ${sourceLang} to ${targetLang}. Preserve natural everyday conversation context. Return ONLY the translated sentence, without any explanations, quotes, or original text:\n"${text}"`;
+  const promptText = `Translate the following text from ${sourceLang} to ${targetLang}. Return ONLY the translated text without quotes or explanation:\n"${text}"`;
 
   try {
     const response = await fetch(url, {
@@ -130,13 +131,11 @@ async function translateWithGemini(text, sourceLang, targetLang) {
     const data = await response.json();
     if (data.candidates && data.candidates[0].content.parts[0].text) {
       return data.candidates[0].content.parts[0].text.trim();
-    } else {
-      console.error("Gemini API Response Error:", data);
-      return "เกิดข้อผิดพลาดในการแปลภาษา";
     }
+    return "เกิดข้อผิดพลาดในการแปลภาษา";
   } catch (error) {
-    console.error("Gemini Translation Error:", error);
-    return "ไม่สามารถเชื่อมต่อ Gemini API ได้";
+    console.error("Gemini API Error:", error);
+    return "ไม่สามารถเชื่อมต่อระบบแปลภาษาได้";
   }
 }
 
