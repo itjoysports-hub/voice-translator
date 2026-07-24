@@ -1,6 +1,8 @@
+// =========================================================================
+// 🔑 1. วาง API Key ของคุณที่ได้จาก Google AI Studio (aistudio.google.com) ที่นี่
+// =========================================================================
+const GEMINI_API_KEY = "AQ.Ab8RN6JgD1y4_MOMKuyvUAdkci96etZ2xkqu4eh1tGt_yQ7lFQ";
 
-// 🔑 ใส่ Gemini API Key ของคุณที่นี่ (คีย์ที่ได้จาก aistudio.google.com ขึ้นต้นด้วย AIzaSy...)
-const GEMINI_API_KEY = "AQ.Ab8RN6KJy_uix56QsgIOoNravS5XZ6agSP0MyOARex_I93EQLA";
 
 // ตรวจสอบระบบจดจำเสียงพูดในเบราว์เซอร์
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -10,12 +12,12 @@ if (!SpeechRecognition) {
 }
 
 const recognition = new SpeechRecognition();
-recognition.continuous = false;
-recognition.interimResults = false;
+recognition.continuous = false;   // ฟังจนจบประโยคแล้วตัดอัตโนมัติ
+recognition.interimResults = false; // เอาเฉพาะผลลัพธ์สุดท้าย
 
 let currentSpeaker = 'A';
 
-// สลับภาษาใน Dropdown A และ B
+// 🔄 สลับภาษาใน Dropdown A และ B
 function swapLanguages() {
   const langA = document.getElementById("langA");
   const langB = document.getElementById("langB");
@@ -25,7 +27,7 @@ function swapLanguages() {
   langB.value = tempVal;
 }
 
-// เริ่มฟังเสียงพูด
+// 🎤 เริ่มฟังเสียงพูด
 function startListening(speaker) {
   currentSpeaker = speaker;
 
@@ -48,7 +50,7 @@ function startListening(speaker) {
   }
 }
 
-// เมื่อจับเสียงพูดได้
+// 🎧 เมื่อจับเสียงพูดได้
 recognition.onresult = async (event) => {
   const speechResult = event.results[0][0].transcript;
 
@@ -71,7 +73,7 @@ recognition.onresult = async (event) => {
     document.getElementById("originalB").innerText = speechResult;
   }
 
-  // แปลภาษาผ่าน Gemini AI
+  // 1. แปลภาษาด้วย Gemini AI
   const translatedText = await translateWithGemini(speechResult, sourceLangName, targetLangName);
 
   if (currentSpeaker === 'A') {
@@ -80,14 +82,14 @@ recognition.onresult = async (event) => {
     document.getElementById("translatedB").innerText = translatedText;
   }
 
-  // อ่านออกเสียงคำแปล
+  // 2. อ่านออกเสียงคำแปล
   speakText(translatedText, targetLangFull);
 
-  // บันทึกลงประวัติ
+  // 3. บันทึกลงประวัติการสนทนา
   addChatHistory(currentSpeaker, speechResult, translatedText, targetLangFull);
 };
 
-// คืนค่าปุ่มไมค์เมื่อหยุดฟัง
+// 🔴 คืนค่าปุ่มไมค์เมื่อพูดจบหรือหยุดฟัง
 recognition.onend = () => {
   const micA = document.getElementById("micA");
   const micB = document.getElementById("micB");
@@ -108,16 +110,18 @@ recognition.onerror = (event) => {
 };
 
 // ==========================================
-// 🤖 ฟังก์ชันแปลภาษาผ่าน Gemini API (ฟรี)
+// 🤖 ฟังก์ชันแปลภาษาผ่าน Gemini API (ฟรี 100%)
 // ==========================================
 async function translateWithGemini(text, sourceLang, targetLang) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6KJy_uix56QsgIOoNravS5XZ6agSP0MyOARex_I93EQLA") {
-    return "กรุณาใส่ GEMINI_API_KEY ก่อนใช้งาน";
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6JgD1y4_MOMKuyvUAdkci96etZ2xkqu4eh1tGt_yQ7lFQ") {
+    alert("กรุณาใส่ GEMINI_API_KEY ในบรรทัดแรกของไฟล์ app.js ก่อนใช้งานครับ");
+    return "ยังไม่ได้ใส่ API Key";
   }
 
+  // ใช้ endpoint gemini-1.5-flash
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-  const promptText = `Translate the following text from ${sourceLang} to ${targetLang}. Return ONLY the translated text without quotes or explanation:\n"${text}"`;
+  const promptText = `You are a professional voice translator. Translate the following spoken message from ${sourceLang} to ${targetLang}. Preserve natural everyday conversation context. Return ONLY the translated sentence, without any explanations, quotes, or original text:\n"${text}"`;
 
   try {
     const response = await fetch(url, {
@@ -129,17 +133,22 @@ async function translateWithGemini(text, sourceLang, targetLang) {
     });
 
     const data = await response.json();
-    if (data.candidates && data.candidates[0].content.parts[0].text) {
+
+    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
       return data.candidates[0].content.parts[0].text.trim();
+    } else if (data.error) {
+      console.error("Gemini API Error Detail:", data.error);
+      return `API Error: ${data.error.message}`;
     }
+
     return "เกิดข้อผิดพลาดในการแปลภาษา";
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "ไม่สามารถเชื่อมต่อระบบแปลภาษาได้";
+    console.error("Gemini Connection Error:", error);
+    return "ไม่สามารถเชื่อมต่อ Gemini API ได้";
   }
 }
 
-// ปุ่มกดฟังเสียงซ้ำ
+// 🔊 ฟังก์ชันกดปุ่มลำโพงเพื่อฟังเสียงอ่านซ้ำ
 function playSpeakerSound(speaker) {
   const translatedElement = document.getElementById(`translated${speaker}`);
   if (!translatedElement) return;
@@ -154,21 +163,24 @@ function playSpeakerSound(speaker) {
   speakText(textToSpeak, targetLang);
 }
 
-// ฟังก์ชันอ่านออกเสียง
+// 🗣️ ฟังก์ชันอ่านออกเสียง (ปรับช้า-เร็ว และโทนเสียงชาย/หญิง ได้)
 function speakText(text, langCode) {
   if (!('speechSynthesis' in window)) return;
 
-  window.speechSynthesis.cancel();
+  window.speechSynthesis.cancel(); // หยุดเสียงเดิมก่อนเล่นใหม่
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode;
 
+  // ดึงค่าความเร็วจาก Dropdown หน้าเว็บ
   const rateSelect = document.getElementById("speechRate");
   utterance.rate = rateSelect ? parseFloat(rateSelect.value) : 0.8;
 
+  // ดึงค่าโทนเสียง (Pitch)
   const pitchSelect = document.getElementById("voicePitch");
   utterance.pitch = pitchSelect ? parseFloat(pitchSelect.value) : 1.0;
 
+  // ค้นหาเสียงที่มีอยู่ในเครื่องผู้ใช้
   const voices = window.speechSynthesis.getVoices();
   const availableVoices = voices.filter(voice => voice.lang.includes(langCode.split('-')[0]));
 
@@ -179,13 +191,14 @@ function speakText(text, langCode) {
   window.speechSynthesis.speak(utterance);
 }
 
+// โหลดรายการเสียงอ่านในเครื่องเตรียมพร้อมไว้
 if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
   };
 }
 
-// บันทึกประวัติ
+// 💬 ฟังก์ชันบันทึกประวัติการสนทนาลงกล่องแชทด้านล่าง
 function addChatHistory(speaker, original, translated, targetLang) {
   const chatDiv = document.getElementById("chat");
   if (!chatDiv) return;
