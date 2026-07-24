@@ -83,7 +83,7 @@ select {
   background-color: #edf2f7;
 }
 
-/* Controls Box (ความเร็ว & เสียงอ่าน) */
+/* Controls Box */
 .controls-box {
   display: flex;
   align-items: center;
@@ -150,7 +150,7 @@ select {
   word-break: break-word;
 }
 
-/* Translated Text Box with Speaker Button */
+/* Translated Text Box */
 .text-box.translate {
   position: relative;
   padding: 12px 42px 12px 14px;
@@ -199,7 +199,6 @@ select {
 
 .speaker-btn:active {
   transform: translateY(-50%) scale(0.92);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .mic {
