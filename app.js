@@ -113,7 +113,7 @@ recognition.onerror = (event) => {
 // 🤖 ฟังก์ชันแปลภาษาผ่าน Gemini API (ฟรี 100%)
 // ==========================================
 async function translateWithGemini(text, sourceLang, targetLang) {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AQ.Ab8RN6JgD1y4_MOMKuyvUAdkci96etZ2xkqu4eh1tGt_yQ7lFQ") {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
     alert("กรุณาใส่ GEMINI_API_KEY ในบรรทัดแรกของไฟล์ app.js ก่อนใช้งานครับ");
     return "ยังไม่ได้ใส่ API Key";
   }
