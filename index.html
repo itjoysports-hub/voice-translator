@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Translator</title>
+  <title>Real-time Voice Translator</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
         </select>
       </div>
 
-      <button id="swap" onclick="swapLanguages()">🔄</button>
+      <button id="swap" onclick="swapLanguages()" title="สลับภาษา">🔄</button>
 
       <div class="lang-group">
         <label>Speaker B:</label>
@@ -33,6 +33,16 @@
           <option value="ko-KR" data-short="ko">🇰🇷 한국어</option>
         </select>
       </div>
+    </div>
+
+    <!-- ตัวเลือกความเร็วเสียงพูด -->
+    <div class="speed-box">
+      <label for="speechRate">🐌 ความเร็วเสียงพูด:</label>
+      <select id="speechRate">
+        <option value="1.0">ปกติ (1.0x)</option>
+        <option value="0.8" selected>ช้ากำลังดี (0.8x) 🎧</option>
+        <option value="0.6">ช้ามาก (0.6x) 🐢</option>
+      </select>
     </div>
 
     <!-- ส่วนการรับเสียง Speaker A & Speaker B -->
