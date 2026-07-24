@@ -35,14 +35,25 @@
       </div>
     </div>
 
-    <!-- ตัวเลือกความเร็วเสียงพูด -->
-    <div class="speed-box">
-      <label for="speechRate">🐌 ความเร็วเสียงพูด:</label>
-      <select id="speechRate">
-        <option value="1.0">ปกติ (1.0x)</option>
-        <option value="0.8" selected>ช้ากำลังดี (0.8x) 🎧</option>
-        <option value="0.6">ช้ามาก (0.6x) 🐢</option>
-      </select>
+    <!-- ส่วนปรับแต่งเสียงอ่าน (ความเร็ว & โทนเสียง) -->
+    <div class="controls-box">
+      <div class="control-item">
+        <label for="speechRate">🐌 ความเร็วเสียง:</label>
+        <select id="speechRate">
+          <option value="1.0">ปกติ (1.0x)</option>
+          <option value="0.8" selected>ช้ากำลังดี (0.8x) 🎧</option>
+          <option value="0.6">ช้ามาก (0.6x) 🐢</option>
+        </select>
+      </div>
+
+      <div class="control-item">
+        <label for="voicePitch">🗣️ โทนเสียงอ่าน:</label>
+        <select id="voicePitch">
+          <option value="1.0" selected>เสียงปกติ (Standard)</option>
+          <option value="1.2">เสียงผู้หญิง (High Pitch)</option>
+          <option value="0.8">เสียงผู้ชาย (Low Pitch/Deep)</option>
+        </select>
+      </div>
     </div>
 
     <!-- ส่วนการรับเสียง Speaker A & Speaker B -->
