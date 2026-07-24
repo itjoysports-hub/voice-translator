@@ -82,7 +82,7 @@ recognition.onresult = async (event) => {
   // อ่านออกเสียงคำแปลด้วยระบบเบราว์เซอร์
   speakText(translatedText, targetLangFull);
 
-  // บันทึกลงประวัติการสนทนา (พร้อมภาษาปลายทางไว้กดฟังซ้ำ)
+  // บันทึกลงประวัติการสนทนา
   addChatHistory(currentSpeaker, speechResult, translatedText, targetLangFull);
 };
 
@@ -122,7 +122,7 @@ async function fetchTranslation(text, from, to) {
   }
 }
 
-// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษเมื่อแปล ไทย <-> พม่า)
+// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษเมื่อแปล ไทย <-> พม่า เพื่อความแม่นยำสูงสุด)
 async function translateText(text, fromShort, toShort) {
   if ((fromShort === 'th' && toShort === 'my') || (fromShort === 'my' && toShort === 'th')) {
     const englishText = await fetchTranslation(text, fromShort, 'en');
@@ -143,7 +143,6 @@ function playSpeakerSound(speaker) {
 
   const textToSpeak = translatedElement.innerText.trim();
   
-  // ป้องกันการกดฟังขณะยังไม่มีคำแปล
   if (!textToSpeak || textToSpeak === "คำแปลจะแสดงที่นี่" || textToSpeak === "Translation will appear here") {
     return;
   }
@@ -151,7 +150,6 @@ function playSpeakerSound(speaker) {
   const langASelect = document.getElementById("langA");
   const langBSelect = document.getElementById("langB");
 
-  // ภาษาคำแปลของ A คือภาษาของ B และ ภาษาคำแปลของ B คือภาษาของ A
   const targetLang = (speaker === 'A') ? langBSelect.value : langASelect.value;
 
   speakText(textToSpeak, targetLang);
@@ -168,7 +166,11 @@ function speakText(text, langCode) {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode;
-  utterance.rate = 1.0;
+
+  // ดึงค่าความเร็วจาก Dropdown หน้าเว็บ
+  const rateSelect = document.getElementById("speechRate");
+  utterance.rate = rateSelect ? parseFloat(rateSelect.value) : 0.8;
+
   utterance.pitch = 1.0;
 
   window.speechSynthesis.speak(utterance);
@@ -181,13 +183,11 @@ function addChatHistory(speaker, original, translated, targetLang) {
 
   const messageDiv = document.createElement("div");
   messageDiv.className = `chat-message ${speaker.toLowerCase()}`;
-  messageDiv.style.marginBottom = "10px";
+  messageDiv.style.marginBottom = "8px";
   messageDiv.style.padding = "8px 12px";
   messageDiv.style.borderRadius = "8px";
   messageDiv.style.backgroundColor = speaker === 'A' ? "#e3f2fd" : "#f1f8e9";
-  messageDiv.style.position = "relative";
 
-  // เพิ่มข้อความพร้อมปุ่มลำโพงจิ๋วข้างคำแปลใน Chat History
   messageDiv.innerHTML = `
     <strong>Speaker ${speaker}:</strong> ${original}<br>
     <span style="color: #333;">➜ ${translated}</span>
