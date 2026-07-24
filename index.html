@@ -1,75 +1,114 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Translator</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Voice Translator</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
 
-  <div class="app">
-    <h1>🌐 Real-time Voice Translator</h1>
+<div class="app">
 
-    <!-- ตัวเลือกภาษา -->
-    <div class="language-box">
-      <div class="lang-group">
-        <label>Speaker A:</label>
-        <select id="langA">
-          <option value="th-TH" data-short="th">🇹🇭 ไทย</option>
-        </select>
-      </div>
+<h1>🌐 Voice Translator</h1>
 
-      <button id="swap" onclick="swapLanguages()">🔄</button>
+<div class="language-box">
 
-      <div class="lang-group">
-        <label>Speaker B:</label>
-        <select id="langB">
-          <option value="en-US" data-short="en">🇺🇸 English</option>
-          <option value="ja-JP" data-short="ja">🇯🇵 日本語</option>
-          <option value="zh-CN" data-short="zh">🇨🇳 中文</option>
-          <option value="ko-KR" data-short="ko">🇰🇷 한국어</option>
-        </select>
-      </div>
-    </div>
+<select id="fromLang">
+<option value="th-TH">🇹🇭 ไทย</option>
+<option value="en-US">🇺🇸 English</option>
+<option value="ja-JP">🇯🇵 日本語</option>
+<option value="zh-CN">🇨🇳 中文</option>
+<option value="my-MM">🇲🇲 မြန်မာစာ (พม่า)</option>
+</select>
 
-    <!-- ส่วนการรับเสียง Speaker A & Speaker B -->
-    <div class="speakers-container">
-      
-      <!-- Speaker A Card -->
-      <div class="card speaker-a">
-        <h2>👤 Speaker A (ไทย)</h2>
-        <div class="text-box">
-          <p id="originalA">กดปุ่ม 🎤 แล้วเริ่มพูด...</p>
-        </div>
-        <div class="text-box translate">
-          <p id="translatedA">คำแปลจะแสดงที่นี่</p>
-        </div>
-        <button id="micA" class="mic" onclick="startListening('A')">🎤 พูด (A)</button>
-      </div>
 
-      <!-- Speaker B Card -->
-      <div class="card speaker-b">
-        <h2>🗣️ Speaker B (ภาษาเลือก)</h2>
-        <div class="text-box">
-          <p id="originalB">Press 🎤 and speak...</p>
-        </div>
-        <div class="text-box translate">
-          <p id="translatedB">Translation will appear here</p>
-        </div>
-        <button id="micB" class="mic" onclick="startListening('B')">🎤 พูด (B)</button>
-      </div>
+<button id="swap" onclick="swapLanguages()">🔄</button>
 
-    </div>
 
-    <!-- ประวัติการสนทนา -->
-    <div class="history">
-      <h3>💬 Conversation History</h3>
-      <div id="chat" class="chat-box"></div>
-    </div>
+<select id="toLang">
+<option value="my-MM">🇲🇲 မြန်မာစာ (พม่า)</option>
+<option value="en-US">🇺🇸 English</option>
+<option value="th-TH">🇹🇭 ไทย</option>
+<option value="ja-JP">🇯🇵 日本語</option>
+<option value="zh-CN">🇨🇳 中文</option>
+</select>
+
+</div>
+
+<div class="cards-container">
+
+  <!-- Speaker A -->
+  <div class="card">
+
+  <h2>👤 Speaker A</h2>
+
+  <div class="text-box">
+  <p id="originalA">
+  กดปุ่ม 🎤 แล้วพูด
+  </p>
+  </div>
+
+
+  <div class="text-box translate">
+  <p id="translatedA">
+  คำแปล
+  </p>
+  </div>
+
+
+  <button class="mic" id="micA" onclick="startVoice('A')">
+  🎤
+  </button>
 
   </div>
 
-  <script src="app.js"></script>
+
+  <!-- Speaker B -->
+  <div class="card">
+
+  <h2>🗣️ Speaker B</h2>
+
+  <div class="text-box">
+  <p id="originalB">
+  กดปุ่ม 🎤 แล้วพูด
+  </p>
+  </div>
+
+
+  <div class="text-box translate">
+  <p id="translatedB">
+  คำแปล
+  </p>
+  </div>
+
+
+  <button class="mic" id="micB" onclick="startVoice('B')">
+  🎤
+  </button>
+
+  </div>
+
+</div>
+
+
+<div class="history">
+
+<h3>💬 Conversation</h3>
+
+<div id="chat"></div>
+
+</div>
+
+
+</div>
+
+
+<script src="app.js"></script>
+
 </body>
 </html>
