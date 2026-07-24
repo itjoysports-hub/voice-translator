@@ -82,8 +82,8 @@ recognition.onresult = async (event) => {
   // อ่านออกเสียงคำแปลด้วยระบบเบราว์เซอร์
   speakText(translatedText, targetLangFull);
 
-  // บันทึกลงประวัติการสนทนา
-  addChatHistory(currentSpeaker, speechResult, translatedText);
+  // บันทึกลงประวัติการสนทนา (พร้อมภาษาปลายทางไว้กดฟังซ้ำ)
+  addChatHistory(currentSpeaker, speechResult, translatedText, targetLangFull);
 };
 
 // คืนค่าปุ่มไมค์เมื่อพูดจบหรือหยุดฟัง
@@ -106,27 +106,6 @@ recognition.onerror = (event) => {
   recognition.onend();
 };
 
-// ฟังก์ชันสำหรับกดฟังเสียงคำแปลซ้ำ
-function replayVoice(speaker) {
-  const langASelect = document.getElementById("langA");
-  const langBSelect = document.getElementById("langB");
-
-  let translatedText = "";
-  let targetLangFull = "";
-
-  if (speaker === 'A') {
-    translatedText = document.getElementById("translatedA").innerText;
-    targetLangFull = langBSelect.value; // ฝั่ง A แปลเป็นภาษาปลายทางของ B
-  } else {
-    translatedText = document.getElementById("translatedB").innerText;
-    targetLangFull = langASelect.value; // ฝั่ง B แปลเป็นภาษาปลายทางของ A
-  }
-
-  if (translatedText && translatedText !== "คำแปลจะแสดงที่นี่" && translatedText !== "Translation will appear here") {
-    speakText(translatedText, targetLangFull);
-  }
-}
-
 // ฟังก์ชันเรียก Google Translate API ย่อย
 async function fetchTranslation(text, from, to) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
@@ -143,7 +122,7 @@ async function fetchTranslation(text, from, to) {
   }
 }
 
-// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษสำหรับพม่า)
+// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษเมื่อแปล ไทย <-> พม่า)
 async function translateText(text, fromShort, toShort) {
   if ((fromShort === 'th' && toShort === 'my') || (fromShort === 'my' && toShort === 'th')) {
     const englishText = await fetchTranslation(text, fromShort, 'en');
@@ -155,6 +134,27 @@ async function translateText(text, fromShort, toShort) {
 
   const directText = await fetchTranslation(text, fromShort, toShort);
   return directText || "เกิดข้อผิดพลาดในการแปลภาษา";
+}
+
+// ฟังก์ชันเมื่อกดปุ่มลำโพงท้ายช่องคำแปลของ Speaker A/B
+function playSpeakerSound(speaker) {
+  const translatedElement = document.getElementById(`translated${speaker}`);
+  if (!translatedElement) return;
+
+  const textToSpeak = translatedElement.innerText.trim();
+  
+  // ป้องกันการกดฟังขณะยังไม่มีคำแปล
+  if (!textToSpeak || textToSpeak === "คำแปลจะแสดงที่นี่" || textToSpeak === "Translation will appear here") {
+    return;
+  }
+
+  const langASelect = document.getElementById("langA");
+  const langBSelect = document.getElementById("langB");
+
+  // ภาษาคำแปลของ A คือภาษาของ B และ ภาษาคำแปลของ B คือภาษาของ A
+  const targetLang = (speaker === 'A') ? langBSelect.value : langASelect.value;
+
+  speakText(textToSpeak, targetLang);
 }
 
 // ฟังก์ชันอ่านออกเสียง (Text-to-Speech)
@@ -175,7 +175,7 @@ function speakText(text, langCode) {
 }
 
 // บันทึกประวัติการสนทนาในช่อง Chat History
-function addChatHistory(speaker, original, translated) {
+function addChatHistory(speaker, original, translated, targetLang) {
   const chatDiv = document.getElementById("chat");
   if (!chatDiv) return;
 
@@ -185,10 +185,15 @@ function addChatHistory(speaker, original, translated) {
   messageDiv.style.padding = "8px 12px";
   messageDiv.style.borderRadius = "8px";
   messageDiv.style.backgroundColor = speaker === 'A' ? "#e3f2fd" : "#f1f8e9";
+  messageDiv.style.position = "relative";
 
+  // เพิ่มข้อความพร้อมปุ่มลำโพงจิ๋วข้างคำแปลใน Chat History
   messageDiv.innerHTML = `
     <strong>Speaker ${speaker}:</strong> ${original}<br>
-    <span style="color: #555;">➜ ${translated}</span>
+    <span style="color: #333;">➜ ${translated}</span>
+    <button onclick="speakText('${translated.replace(/'/g, "\\'")}', '${targetLang}')" 
+            style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:6px;" 
+            title="ฟังเสียงอีกครั้ง">🔊</button>
   `;
 
   chatDiv.appendChild(messageDiv);
