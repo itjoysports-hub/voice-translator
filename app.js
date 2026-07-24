@@ -1,4 +1,4 @@
-// ตรวจสอบระบบจดจำเสียงพูดในเบราว์เซอร์
+// ตรวจสอบระบบจดจำเสียงพูด
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
@@ -6,7 +6,7 @@ if (!SpeechRecognition) {
 }
 
 const recognition = new SpeechRecognition();
-recognition.continuous = false;   // ฟังจนจบประโยคแล้วตัดอัตโนมัติ
+recognition.continuous = false;   // ฟังจบประโยคแล้วตัดอัตโนมัติ
 recognition.interimResults = false; // เอาเฉพาะผลลัพธ์สุดท้าย
 
 let currentSpeaker = 'A';
@@ -29,8 +29,6 @@ function startListening(speaker) {
   const langBSelect = document.getElementById("langB");
 
   // กำหนดภาษาให้ไมค์ฟังตามฝั่งที่กดพูด
-  // Speaker A พูด -> ฟังตามภาษา langA
-  // Speaker B พูด -> ฟังตามภาษา langB
   const selectedLang = (speaker === 'A') ? langASelect.value : langBSelect.value;
   recognition.lang = selectedLang;
 
@@ -47,49 +45,62 @@ function startListening(speaker) {
   }
 }
 
-// เมื่อเบราว์เซอร์จับเสียงพูดได้
+// เมื่อจับเสียงพูดได้สำเร็จ
 recognition.onresult = async (event) => {
   const speechResult = event.results[0][0].transcript;
 
   const langASelect = document.getElementById("langA");
   const langBSelect = document.getElementById("langB");
 
-  let sourceLangFull, targetLangFull;
-  let sourceShort, targetShort;
+  // ดึงรหัสภาษาแบบสั้นจาก option ที่ถูกเลือกอยู่ (เช่น 'th', 'en', 'my')
+  const shortA = langASelect.options[langASelect.selectedIndex].getAttribute("data-short") || 'th';
+  const shortB = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'en';
+
+  const fullA = langASelect.value;
+  const fullB = langBSelect.value;
+
+  let sourceText = speechResult;
+  let translatedText = "";
+  let sourceShort = "";
+  let targetShort = "";
+  let targetFull = "";
 
   if (currentSpeaker === 'A') {
-    sourceLangFull = langASelect.value;
-    targetLangFull = langBSelect.value;
-    sourceShort = langASelect.options[langASelect.selectedIndex].getAttribute("data-short") || 'th';
-    targetShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'en';
+    // Speaker A พูด -> แปลจาก A ไป B
+    sourceShort = shortA;
+    targetShort = shortB;
+    targetFull = fullB;
 
-    document.getElementById("originalA").innerText = speechResult;
+    document.getElementById("originalA").innerText = sourceText;
+    document.getElementById("translatedA").innerText = "⏳ กำลังแปล...";
   } else {
-    sourceLangFull = langBSelect.value;
-    targetLangFull = langASelect.value;
-    sourceShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'en';
-    targetShort = langASelect.options[langASelect.selectedIndex].getAttribute("data-short") || 'th';
+    // Speaker B พูด -> แปลจาก B ไป A
+    sourceShort = shortB;
+    targetShort = shortA;
+    targetFull = fullA;
 
-    document.getElementById("originalB").innerText = speechResult;
+    document.getElementById("originalB").innerText = sourceText;
+    document.getElementById("translatedB").innerText = "⏳ กำลังแปล...";
   }
 
-  // ส่งคำพูดไปแปลภาษาด้วย Google Translate (ฟรี)
-  const translatedText = await translateText(speechResult, sourceShort, targetShort);
+  // แปลภาษา
+  translatedText = await translateText(sourceText, sourceShort, targetShort);
 
+  // แสดงผลคำแปล
   if (currentSpeaker === 'A') {
     document.getElementById("translatedA").innerText = translatedText;
   } else {
     document.getElementById("translatedB").innerText = translatedText;
   }
 
-  // อ่านออกเสียงคำแปลด้วยระบบเบราว์เซอร์
-  speakText(translatedText, targetLangFull);
+  // อ่านออกเสียงคำแปล
+  speakText(translatedText, targetFull);
 
-  // บันทึกลงประวัติการสนทนา
-  addChatHistory(currentSpeaker, speechResult, translatedText);
+  // บันทึกประวัติ
+  addChatHistory(currentSpeaker, sourceText, translatedText);
 };
 
-// คืนค่าปุ่มไมค์เมื่อพูดจบหรือหยุดฟัง
+// คืนค่าปุ่มไมค์เมื่อพูดจบ
 recognition.onend = () => {
   const micA = document.getElementById("micA");
   const micB = document.getElementById("micB");
@@ -104,7 +115,6 @@ recognition.onend = () => {
   }
 };
 
-// หากเกิดข้อผิดพลาดในการรับเสียง
 recognition.onerror = (event) => {
   console.error("Speech recognition error:", event.error);
   recognition.onend();
@@ -112,41 +122,41 @@ recognition.onerror = (event) => {
 
 // ฟังก์ชันแปลภาษาผ่าน Free Google Translate API
 async function translateText(text, fromShort, toShort) {
+  // ป้องกันการแปลภาษาเดียวกัน
+  if (fromShort === toShort) {
+    return text;
+  }
+
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromShort}&tl=${toShort}&dt=t&q=${encodeURIComponent(text)}`;
 
   try {
     const response = await fetch(url);
     const data = await response.json();
     
-    // ดึงข้อความผลลัพธ์การแปล
     if (data && data[0]) {
       return data[0].map(item => item[0]).join('');
     }
     return "ไม่สามารถแปลข้อความได้";
   } catch (error) {
     console.error("Translation Error:", error);
-    return "เกิดข้อผิดพลาดในการเชื่อมต่อระบบแปลภาษา";
+    return "เกิดข้อผิดพลาดในการแปลภาษา";
   }
 }
 
-// ฟังก์ชันอ่านออกเสียง (Text-to-Speech) ของเบราว์เซอร์
+// ฟังก์ชันอ่านออกเสียง
 function speakText(text, langCode) {
-  if (!('speechSynthesis' in window)) {
-    console.warn("เบราว์เซอร์นี้ไม่รองรับการอ่านออกเสียง");
-    return;
-  }
+  if (!('speechSynthesis' in window)) return;
 
-  window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเล่นเสียงใหม่
+  window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อน
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode;
-  utterance.rate = 1.0;  // ความเร็วเสียง
-  utterance.pitch = 1.0; // ระดับเสียง
+  utterance.rate = 1.0;
 
   window.speechSynthesis.speak(utterance);
 }
 
-// บันทึกประวัติการสนทนาในช่อง Chat History
+// บันทึกประวัติการสนทนา
 function addChatHistory(speaker, original, translated) {
   const chatDiv = document.getElementById("chat");
   if (!chatDiv) return;
@@ -164,5 +174,5 @@ function addChatHistory(speaker, original, translated) {
   `;
 
   chatDiv.appendChild(messageDiv);
-  chatDiv.scrollTop = chatDiv.scrollHeight; // เลื่อนลงล่างสุดอัตโนมัติ
+  chatDiv.scrollTop = chatDiv.scrollHeight;
 }
