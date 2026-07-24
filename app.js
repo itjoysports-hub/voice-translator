@@ -44,33 +44,30 @@ function startListening(speaker) {
   }
 }
 
-// เมื่อเบราว์เซอร์จับเสียงพูดได้
+// เมื่อจับเสียงพูดได้
 recognition.onresult = async (event) => {
   const speechResult = event.results[0][0].transcript;
 
   const langASelect = document.getElementById("langA");
   const langBSelect = document.getElementById("langB");
 
-  let sourceLangFull, targetLangFull;
-  let sourceShort, targetShort;
+  let targetLangFull, sourceShort, targetShort;
 
   if (currentSpeaker === 'A') {
-    sourceLangFull = langASelect.value;
     targetLangFull = langBSelect.value;
     sourceShort = langASelect.options[langASelect.selectedIndex].getAttribute("data-short") || 'th';
-    targetShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'en';
+    targetShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'my';
 
     document.getElementById("originalA").innerText = speechResult;
   } else {
-    sourceLangFull = langBSelect.value;
     targetLangFull = langASelect.value;
-    sourceShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'en';
+    sourceShort = langBSelect.options[langBSelect.selectedIndex].getAttribute("data-short") || 'my';
     targetShort = langASelect.options[langASelect.selectedIndex].getAttribute("data-short") || 'th';
 
     document.getElementById("originalB").innerText = speechResult;
   }
 
-  // ส่งคำพูดไปแปลภาษา
+  // ส่งคำพูดไปแปลภาษา (ฟรี)
   const translatedText = await translateText(speechResult, sourceShort, targetShort);
 
   if (currentSpeaker === 'A') {
@@ -79,14 +76,14 @@ recognition.onresult = async (event) => {
     document.getElementById("translatedB").innerText = translatedText;
   }
 
-  // อ่านออกเสียงคำแปลด้วยระบบเบราว์เซอร์
+  // อ่านออกเสียงคำแปลด้วยระบบเบราว์เซอร์ (ปรับความเร็วตาม Dropdown)
   speakText(translatedText, targetLangFull);
 
   // บันทึกลงประวัติการสนทนา
   addChatHistory(currentSpeaker, speechResult, translatedText, targetLangFull);
 };
 
-// คืนค่าปุ่มไมค์เมื่อพูดจบหรือหยุดฟัง
+// คืนค่าปุ่มไมค์เมื่อพูดจบ
 recognition.onend = () => {
   const micA = document.getElementById("micA");
   const micB = document.getElementById("micB");
@@ -106,7 +103,7 @@ recognition.onerror = (event) => {
   recognition.onend();
 };
 
-// ฟังก์ชันเรียก Google Translate API ย่อย
+// ฟังก์ชันเรียก Google Translate Free Endpoint
 async function fetchTranslation(text, from, to) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
   try {
@@ -122,7 +119,7 @@ async function fetchTranslation(text, from, to) {
   }
 }
 
-// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษเมื่อแปล ไทย <-> พม่า เพื่อความแม่นยำสูงสุด)
+// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษเพื่อความแม่นยำเมื่อแปล ไทย <-> พม่า)
 async function translateText(text, fromShort, toShort) {
   if ((fromShort === 'th' && toShort === 'my') || (fromShort === 'my' && toShort === 'th')) {
     const englishText = await fetchTranslation(text, fromShort, 'en');
@@ -136,47 +133,39 @@ async function translateText(text, fromShort, toShort) {
   return directText || "เกิดข้อผิดพลาดในการแปลภาษา";
 }
 
-// ฟังก์ชันเมื่อกดปุ่มลำโพงท้ายช่องคำแปลของ Speaker A/B
+// ฟังก์ชันเมื่อกดปุ่มลำโพง 🔊
 function playSpeakerSound(speaker) {
   const translatedElement = document.getElementById(`translated${speaker}`);
   if (!translatedElement) return;
 
   const textToSpeak = translatedElement.innerText.trim();
-  
-  if (!textToSpeak || textToSpeak === "คำแปลจะแสดงที่นี่" || textToSpeak === "Translation will appear here") {
-    return;
-  }
+  if (!textToSpeak || textToSpeak.includes("แสดงที่นี่") || textToSpeak.includes("appear here")) return;
 
   const langASelect = document.getElementById("langA");
   const langBSelect = document.getElementById("langB");
 
   const targetLang = (speaker === 'A') ? langBSelect.value : langASelect.value;
-
   speakText(textToSpeak, targetLang);
 }
 
-// ฟังก์ชันอ่านออกเสียง (Text-to-Speech)
+// ฟังก์ชันอ่านออกเสียง (ปรับช้า-เร็วได้)
 function speakText(text, langCode) {
-  if (!('speechSynthesis' in window)) {
-    console.warn("เบราว์เซอร์นี้ไม่รองรับการอ่านออกเสียง");
-    return;
-  }
+  if (!('speechSynthesis' in window)) return;
 
-  window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเล่นเสียงใหม่
+  window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเล่นใหม่
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = langCode;
 
-  // ดึงค่าความเร็วจาก Dropdown หน้าเว็บ
+  // 🐌 ดึงค่าความเร็วจากตัวเลือกหน้าเว็บ (Default = 0.8 ช้ากำลังดี)
   const rateSelect = document.getElementById("speechRate");
   utterance.rate = rateSelect ? parseFloat(rateSelect.value) : 0.8;
 
   utterance.pitch = 1.0;
-
   window.speechSynthesis.speak(utterance);
 }
 
-// บันทึกประวัติการสนทนาในช่อง Chat History
+// บันทึกประวัติ
 function addChatHistory(speaker, original, translated, targetLang) {
   const chatDiv = document.getElementById("chat");
   if (!chatDiv) return;
@@ -188,10 +177,12 @@ function addChatHistory(speaker, original, translated, targetLang) {
   messageDiv.style.borderRadius = "8px";
   messageDiv.style.backgroundColor = speaker === 'A' ? "#e3f2fd" : "#f1f8e9";
 
+  const safeTranslated = translated.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
   messageDiv.innerHTML = `
     <strong>Speaker ${speaker}:</strong> ${original}<br>
     <span style="color: #333;">➜ ${translated}</span>
-    <button onclick="speakText('${translated.replace(/'/g, "\\'")}', '${targetLang}')" 
+    <button onclick="speakText('${safeTranslated}', '${targetLang}')" 
             style="background:none; border:none; cursor:pointer; font-size:14px; margin-left:6px;" 
             title="ฟังเสียงอีกครั้ง">🔊</button>
   `;
