@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Voice Translator</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>🌐 Voice Translator</h1>
+
+<div class="language-box">
+
+<select id="fromLang">
+<option value="th">🇹🇭 ไทย</option>
+<option value="en">🇺🇸 English</option>
+<option value="ja">🇯🇵 日本語</option>
+<option value="zh">🇨🇳 中文</option>
+</select>
+
+
+<button id="swap">🔄</button>
+
+
+<select id="toLang">
+<option value="en">🇺🇸 English</option>
+<option value="th">🇹🇭 ไทย</option>
+<option value="ja">🇯🇵 日本語</option>
+<option value="zh">🇨🇳 中文</option>
+</select>
+
+</div>
+
+
+<div class="card">
+
+<h2>👤 Speaker A</h2>
+
+<div class="text-box">
+<p id="original">
+กดปุ่ม 🎤 แล้วพูด
+</p>
+</div>
+
+
+<div class="text-box translate">
+<p id="translated">
+คำแปล
+</p>
+</div>
+
+
+<button class="mic" onclick="startVoice()">
+🎤
+</button>
+
+
+</div>
+
+
+
+<div class="history">
+
+<h3>💬 Conversation</h3>
+
+<div id="chat"></div>
+
+</div>
+
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
