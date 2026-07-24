@@ -83,22 +83,29 @@ select {
   background-color: #edf2f7;
 }
 
-/* Speed Box */
-.speed-box {
+/* Controls Box (ความเร็ว & เสียงอ่าน) */
+.controls-box {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 16px;
   margin-top: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.speed-box label {
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-item label {
   font-size: 13px;
   color: #4a5568;
 }
 
-.speed-box select {
+.control-item select {
   padding: 4px 8px;
   font-size: 13px;
 }
