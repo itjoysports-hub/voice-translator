@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-time Voice Translator</title>
+  <title>Real-time Voice Translator (Gemini AI)</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,8 +16,10 @@
       <div class="lang-group">
         <label>Speaker A:</label>
         <select id="langA">
-          <option value="th-TH" data-short="th">🇹🇭 ไทย</option>
-          <option value="my-MM" data-short="my">🇲🇲 မြန်မာစာ (พม่า)</option>
+          <option value="th-TH" data-short="th" data-langname="Thai">🇹🇭 ไทย</option>
+          <option value="my-MM" data-short="my" data-langname="Burmese">🇲🇲 မြန်မာစာ (พม่า)</option>
+          <option value="en-US" data-short="en" data-langname="English">🇺🇸 English</option>
+          <option value="zh-CN" data-short="zh" data-langname="Chinese">🇨🇳 中文</option>
         </select>
       </div>
 
@@ -26,11 +28,12 @@
       <div class="lang-group">
         <label>Speaker B:</label>
         <select id="langB">
-          <option value="my-MM" data-short="my">🇲🇲 မြန်မာစာ (พม่า)</option>
-          <option value="en-US" data-short="en">🇺🇸 English</option>
-          <option value="ja-JP" data-short="ja">🇯🇵 日本語</option>
-          <option value="zh-CN" data-short="zh">🇨🇳 中文</option>
-          <option value="ko-KR" data-short="ko">🇰🇷 한국어</option>
+          <option value="my-MM" data-short="my" data-langname="Burmese">🇲🇲 မြန်မာစာ (พม่า)</option>
+          <option value="th-TH" data-short="th" data-langname="Thai">🇹🇭 ไทย</option>
+          <option value="en-US" data-short="en" data-langname="English">🇺🇸 English</option>
+          <option value="ja-JP" data-short="ja" data-langname="Japanese">🇯🇵 日本語</option>
+          <option value="zh-CN" data-short="zh" data-langname="Chinese">🇨🇳 中文</option>
+          <option value="ko-KR" data-short="ko" data-langname="Korean">🇰🇷 한국어</option>
         </select>
       </div>
     </div>
