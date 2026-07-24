@@ -106,6 +106,27 @@ recognition.onerror = (event) => {
   recognition.onend();
 };
 
+// ฟังก์ชันสำหรับกดฟังเสียงคำแปลซ้ำ
+function replayVoice(speaker) {
+  const langASelect = document.getElementById("langA");
+  const langBSelect = document.getElementById("langB");
+
+  let translatedText = "";
+  let targetLangFull = "";
+
+  if (speaker === 'A') {
+    translatedText = document.getElementById("translatedA").innerText;
+    targetLangFull = langBSelect.value; // ฝั่ง A แปลเป็นภาษาปลายทางของ B
+  } else {
+    translatedText = document.getElementById("translatedB").innerText;
+    targetLangFull = langASelect.value; // ฝั่ง B แปลเป็นภาษาปลายทางของ A
+  }
+
+  if (translatedText && translatedText !== "คำแปลจะแสดงที่นี่" && translatedText !== "Translation will appear here") {
+    speakText(translatedText, targetLangFull);
+  }
+}
+
 // ฟังก์ชันเรียก Google Translate API ย่อย
 async function fetchTranslation(text, from, to) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
@@ -122,25 +143,21 @@ async function fetchTranslation(text, from, to) {
   }
 }
 
-// ฟังก์ชันแปลภาษาแบบชาญฉลาด (Pivot Translation สำหรับพม่า)
+// ฟังก์ชันแปลภาษาแบบ Pivot (ผ่านภาษาอังกฤษสำหรับพม่า)
 async function translateText(text, fromShort, toShort) {
-  // กรณีแปล ไทย <-> พม่า ให้ใช้อังกฤษเป็นสะพานเชื่อม (Pivot) เพื่อความแม่นยำสูงสุด
   if ((fromShort === 'th' && toShort === 'my') || (fromShort === 'my' && toShort === 'th')) {
-    // ขั้นที่ 1: แปลเป็นภาษาอังกฤษก่อน
     const englishText = await fetchTranslation(text, fromShort, 'en');
     if (englishText) {
-      // ขั้นที่ 2: แปลจากภาษาอังกฤษไปภาษาปลายทาง
       const finalText = await fetchTranslation(englishText, 'en', toShort);
       if (finalText) return finalText;
     }
   }
 
-  // การแปลคู่ภาษาอื่นๆ หรือกรณี Pivot ล้มเหลว ให้แปลตรงๆ
   const directText = await fetchTranslation(text, fromShort, toShort);
   return directText || "เกิดข้อผิดพลาดในการแปลภาษา";
 }
 
-// ฟังก์ชันอ่านออกเสียง (Text-to-Speech) ของเบราว์เซอร์
+// ฟังก์ชันอ่านออกเสียง (Text-to-Speech)
 function speakText(text, langCode) {
   if (!('speechSynthesis' in window)) {
     console.warn("เบราว์เซอร์นี้ไม่รองรับการอ่านออกเสียง");
