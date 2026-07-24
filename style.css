@@ -1,26 +1,59 @@
+/* Container ช่องคำแปล */
 .text-box.translate {
   position: relative;
-  padding-right: 35px; /* เว้นพื้นที่ให้ปุ่มลำโพง */
+  padding: 12px 42px 12px 14px; /* เว้นระยะขวาสำหรับวางปุ่มลำโพง */
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
 }
 
+.text-box.translate:hover {
+  border-color: #ced4da;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ปุ่มลำโพง (Speaker Button) */
 .speaker-btn {
   position: absolute;
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
-  transition: transform 0.1s ease;
+  font-size: 15px;
+  color: #4a5568;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* เอฟเฟกต์เมื่อวางเมาส์ (Hover) */
 .speaker-btn:hover {
-  transform: translateY(-50%) scale(1.2);
+  background-color: #3b82f6; /* สีฟ้า */
+  color: #ffffff;
+  border-color: #3b82f6;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
 }
 
+/* เอฟเฟกต์เมื่อคลิกปุ่ม (Active) */
 .speaker-btn:active {
-  transform: scale(0.95);
+  transform: translateY(-50%) scale(0.92);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* รองรับการโฟกัสด้วย Keyboard (Accessibility) */
+.speaker-btn:focus-visible {
+  ring: 2px solid #60a5fa;
 }
