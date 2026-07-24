@@ -1,126 +1,188 @@
-// ตรวจสอบการรองรับ Web Speech API
+// ตรวจสอบ Web Speech API สำหรับการจำเสียงพูด
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
-  alert("เบราว์เซอร์ของคุณไม่รองรับ Speech Recognition แนะนำให้ใช้ Google Chrome ครับ");
+  alert("เบราว์เซอร์ของคุณไม่รองรับระบบรับเสียงพูด กรุณาใช้ Google Chrome หรือ Microsoft Edge");
 }
 
 const recognition = new SpeechRecognition();
-recognition.continuous = false;
-recognition.interimResults = false;
+recognition.continuous = false;   // ฟังจบประโยคแล้วหยุด
+recognition.interimResults = false; // เอาเฉพาะผลลัพธ์ที่พูดเสร็จแล้ว
 
-let currentSpeaker = null;
+let currentSpeaker = 'A';
 
-// เริ่มจับเสียงพูด
+// ฟังก์ชันสลับภาษาใน Dropdown
+function swapLanguages() {
+  const langA = document.getElementById("langA");
+  const langB = document.getElementById("langB");
+
+  // อ่านค่าภาษาที่เลือกไว้ปัจจุบัน
+  const valA = langA.value;
+  const valB = langB.value;
+
+  // ตรวจสอบว่าใน Dropdown ทั้งสองฝั่งมี Option ตรงกันไหมก่อนสลับ
+  let optionAExist = Array.from(langA.options).some(opt => opt.value === valB);
+  let optionBExist = Array.from(langB.options).some(opt => opt.value === valA);
+
+  if (optionAExist && optionBExist) {
+    langA.value = valB;
+    langB.value = valA;
+  } else {
+    // กรณีภาษาฝั่งหนึ่งไม่มีในอีกฝั่ง ให้ใช้วิธีสลับ index
+    const tempIndex = langA.selectedIndex;
+    langA.selectedIndex = langB.selectedIndex < langA.options.length ? langB.selectedIndex : 0;
+    langB.selectedIndex = tempIndex < langB.options.length ? tempIndex : 0;
+  }
+}
+
+// เริ่มการฟังเสียง
 function startListening(speaker) {
   currentSpeaker = speaker;
   
-  const langASelect = document.getElementById('langA');
-  const langBSelect = document.getElementById('langB');
-  
-  // ตั้งค่าภาษาในการจับเสียงตาม Speaker
-  if (speaker === 'A') {
-    recognition.lang = langASelect.value;
-    document.getElementById('micA').classList.add('recording');
-    document.getElementById('micA').innerText = '🔴 กำลังฟัง...';
-  } else {
-    recognition.lang = langBSelect.value;
-    document.getElementById('micB').classList.add('recording');
-    document.getElementById('micB').innerText = '🔴 Listening...';
-  }
+  const langA = document.getElementById("langA").value;
+  const langB = document.getElementById("langB").value;
 
-  recognition.start();
+  // กำหนดภาษาที่จะจับเสียงพูด
+  // Speaker A พูด -> ฟังภาษา A / Speaker B พูด -> ฟังภาษา B
+  recognition.lang = (speaker === 'A') ? langA : langB;
+
+  const activeMic = document.getElementById(`mic${speaker}`);
+  activeMic.innerText = "🔴 กำลังฟัง...";
+  activeMic.disabled = true;
 }
 
-// เมื่อได้รับข้อความจากการพูด
+// เมื่อเบราว์เซอร์จับเสียงพูดได้สำเร็จ
 recognition.onresult = async (event) => {
-  const transcript = event.results[0][0].transcript;
+  const speechResult = event.results[0][0].transcript;
   
-  const langAOption = document.getElementById('langA').selectedOptions[0];
-  const langBOption = document.getElementById('langB').selectedOptions[0];
-  
-  const langAShort = langAOption.getAttribute('data-short');
-  const langBShort = langBOption.getAttribute('data-short');
+  const langAVal = document.getElementById("langA").value;
+  const langBVal = document.getElementById("langB").value;
 
-  let sourceLang, targetLang, originalElem, translatedElem;
+  let sourceLang, targetLang;
 
   if (currentSpeaker === 'A') {
-    sourceLang = langAShort;
-    targetLang = langBShort;
-    originalElem = document.getElementById('originalA');
-    translatedElem = document.getElementById('translatedA');
+    sourceLang = langAVal;
+    targetLang = langBVal;
+    document.getElementById("originalA").innerText = speechResult;
   } else {
-    sourceLang = langBShort;
-    targetLang = langAShort;
-    originalElem = document.getElementById('originalB');
-    translatedElem = document.getElementById('translatedB');
+    sourceLang = langBVal;
+    targetLang = langAVal;
+    document.getElementById("originalB").innerText = speechResult;
   }
 
-  originalElem.innerText = transcript;
-  translatedElem.innerText = "กำลังแปลภาษา...";
+  // ส่งไปแปลภาษา
+  const translatedText = await translateText(speechResult, sourceLang, targetLang);
+  
+  if (currentSpeaker === 'A') {
+    document.getElementById("translatedA").innerText = translatedText;
+  } else {
+    document.getElementById("translatedB").innerText = translatedText;
+  }
 
-  // แปลภาษาผ่าน Free API (MyMemory API)
-  const translatedText = await translateText(transcript, sourceLang, targetLang);
-  translatedElem.innerText = translatedText;
-
-  // อ่านออกเสียงคำแปลตามภาษาปลายทาง
-  speakText(translatedText, targetLang === 'th' ? 'th-TH' : document.getElementById('langB').value);
+  // อ่านออกเสียงคำแปลผ่าน Web Speech API ของเบราว์เซอร์
+  speakText(translatedText, targetLang);
 
   // บันทึกลงประวัติการสนทนา
-  addHistory(currentSpeaker, transcript, translatedText);
+  addChatHistory(currentSpeaker, speechResult, translatedText);
 };
 
-// เมื่อจับเสียงเสร็จสิ้น
+// เมื่อฟังเสียงเสร็จหรือเกิดการหยุดทำงาน คืนค่าปุ่มไมค์เป็นปกติ
 recognition.onend = () => {
-  document.getElementById('micA').classList.remove('recording');
-  document.getElementById('micA').innerText = '🎤 พูด (A)';
-  document.getElementById('micB').classList.remove('recording');
-  document.getElementById('micB').innerText = '🎤 พูด (B)';
+  const micA = document.getElementById("micA");
+  const micB = document.getElementById("micB");
+
+  micA.innerText = "🎤 พูด (A)";
+  micA.disabled = false;
+
+  micB.innerText = "🎤 พูด (B)";
+  micB.disabled = false;
 };
 
-// ฟังก์ชันแปลภาษาโดยใช้ MyMemory API
+// กรณีเกิดข้อผิดพลาดในการฟังเสียง
+recognition.onerror = (event) => {
+  console.error("Speech Recognition Error:", event.error);
+  recognition.stop();
+};
+
+// ฟังก์ชันแปลภาษาผ่าน Google Translate Endpoint สาธารณะ (ฟรี ไม่ต้องใช้ API Key)
 async function translateText(text, from, to) {
+  // ดึงรหัสภาษาแบบสั้น เช่น 'th-TH' -> 'th', 'my-MM' -> 'my'
+  const sourceShort = getShortLangCode(from);
+  const targetShort = getShortLangCode(to);
+
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceShort}&tl=${targetShort}&dt=t&q=${encodeURIComponent(text)}`;
+
   try {
-    const response = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`
-    );
+    const response = await fetch(url);
     const data = await response.json();
-    return data.responseData.translatedText || "ไม่สามารถแปลภาษาได้";
+    // แปลงผลลัพธ์ Array ซ้อน Array ของ Google ให้กลายเป็นข้อความแปลเต็ม
+    return data[0].map(item => item[0]).join('');
   } catch (error) {
     console.error("Translation Error:", error);
-    return "เกิดข้อผิดพลาดในการแปล";
+    // สำรองไปใช้ MyMemory API หาก Endpoint หลักมีปัญหา
+    return translateFallback(text, sourceShort, targetShort);
   }
 }
 
-// ฟังก์ชันอ่านออกเสียง (Text-to-Speech)
-function speakText(text, langCode) {
-  // ยกเลิกเสียงที่กำลังพูดอยู่ก่อนหน้า
+// ฟังก์ชันแปลภาษาสำรอง (MyMemory API)
+async function translateFallback(text, fromShort, toShort) {
+  const langPair = `${fromShort}|${toShort}`;
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.responseData.translatedText;
+  } catch (error) {
+    return "เกิดข้อผิดพลาดในการแปลภาษา";
+  }
+}
+
+// ฟังก์ชันแปลงรหัสภาษาให้อยู่ในรูปแบบย่อ (2 หลัก)
+function getShortLangCode(fullLangCode) {
+  // หาจาก attribute data-short ใน <select> ก่อน ถ้าไม่มีให้ใช้การ split
+  const selectA = document.getElementById("langA");
+  const selectB = document.getElementById("langB");
+  
+  const option = Array.from(selectA.options).concat(Array.from(selectB.options))
+                      .find(opt => opt.value === fullLangCode);
+
+  if (option && option.dataset.short) {
+    return option.dataset.short;
+  }
+  return fullLangCode.split('-')[0];
+}
+
+// ฟังก์ชันอ่านออกเสียงคำแปล (Text-to-Speech) ฟรีผ่าน Browser Web Speech API
+function speakText(text, lang) {
+  if (!('speechSynthesis' in window)) return;
+
+  // ยกเลิกเสียงที่กำลังพูดอยู่ก่อนหน้า (ถ้ามี)
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = langCode;
-  utterance.rate = 0.9; // ความเร็วเสียงพูด
-  
+  utterance.lang = lang;
+  utterance.rate = 0.9; // ปรับความเร็วการพูดให้อ่านฟังง่ายขึ้นเล็กน้อย
+
   window.speechSynthesis.speak(utterance);
 }
 
-// สลับภาษา A และ B
-function swapLanguages() {
-  const langB = document.getElementById('langB');
-  alert("ฟังก์ชันนี้ไว้สำหรับสลับภาษาคู่สนทนาตามต้องการ");
-}
+// บันทึกประวัติการสนทนาลงในช่อง Conversation History
+function addChatHistory(speaker, original, translated) {
+  const chatDiv = document.getElementById("chat");
+  const messageDiv = document.createElement("div");
+  
+  messageDiv.className = `chat-message speaker-${speaker.toLowerCase()}`;
+  messageDiv.style.marginBottom = "10px";
+  messageDiv.style.padding = "8px 12px";
+  messageDiv.style.borderRadius = "8px";
+  messageDiv.style.backgroundColor = speaker === 'A' ? "#e3f2fd" : "#f3e5f5";
 
-// เพิ่มข้อความลงในแชตประวัติ
-function addHistory(speaker, original, translated) {
-  const chatBox = document.getElementById('chat');
-  const msgDiv = document.createElement('div');
-  
-  msgDiv.className = `msg ${speaker === 'A' ? 'msg-a' : 'msg-b'}`;
-  msgDiv.innerHTML = `
-    <div><strong>Speaker ${speaker}:</strong> ${original}</div>
-    <div class="trans">➡️ ${translated}</div>
+  messageDiv.innerHTML = `
+    <strong>Speaker ${speaker}:</strong> ${original}<br>
+    <span style="color: #555;">➜ ${translated}</span>
   `;
-  
-  chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
+
+  chatDiv.appendChild(messageDiv);
+  chatDiv.scrollTop = chatDiv.scrollHeight; // เลื่อนหน้าต่างประวัติลงล่างสุดอัตโนมัติ
 }
